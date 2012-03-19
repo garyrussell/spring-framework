@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Juergen Hoeller
  * @author Rod Johnson
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  * @see ParserContext
  * @see DefaultBeanDefinitionDocumentReader
@@ -1302,13 +1303,24 @@ public class BeanDefinitionParserDelegate {
 			Object value = null;
 			boolean hasValueAttribute = entryEle.hasAttribute(VALUE_ATTRIBUTE);
 			boolean hasValueRefAttribute = entryEle.hasAttribute(VALUE_REF_ATTRIBUTE);
+			boolean hasValueTypeAttribute = entryEle.hasAttribute(VALUE_TYPE_ATTRIBUTE);
 			if ((hasValueAttribute && hasValueRefAttribute) ||
 					((hasValueAttribute || hasValueRefAttribute)) && valueEle != null) {
 				error("<entry> element is only allowed to contain either " +
 						"'value' attribute OR 'value-ref' attribute OR <value> sub-element", entryEle);
 			}
+			if ((hasValueTypeAttribute && hasValueRefAttribute) ||
+				(hasValueTypeAttribute && !hasValueAttribute) ||
+					(hasValueTypeAttribute && valueEle != null)) {
+				error("<entry> element is only allowed to contain a 'value-type' " +
+						"attribute when it has a 'value' attribute", entryEle);
+			}
 			if (hasValueAttribute) {
-				value = buildTypedStringValueForMap(entryEle.getAttribute(VALUE_ATTRIBUTE), defaultValueType, entryEle);
+				String valueType = entryEle.getAttribute(VALUE_TYPE_ATTRIBUTE);
+				if (!StringUtils.hasText(valueType)) {
+					valueType = defaultValueType;
+				}
+				value = buildTypedStringValueForMap(entryEle.getAttribute(VALUE_ATTRIBUTE), valueType, entryEle);
 			}
 			else if (hasValueRefAttribute) {
 				String refName = entryEle.getAttribute(VALUE_REF_ATTRIBUTE);
