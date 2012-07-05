@@ -19,7 +19,9 @@ package org.springframework.expression.spel.support;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
@@ -274,17 +276,29 @@ public class ReflectionHelper {
 	 */
 	static void convertArguments(TypeConverter converter, Object[] arguments, Object methodOrCtor,
 			int[] argumentsRequiringConversion, Integer varargsPosition) throws EvaluationException {
+		Set<Integer> argumentsToConvert = null;
+		if (argumentsRequiringConversion != null && argumentsRequiringConversion.length > 0) {
+			argumentsToConvert = new HashSet<Integer>();
+			for (int argIndex : argumentsRequiringConversion) {
+				argumentsToConvert.add(argIndex);
+			}
+		}
+
 		if (varargsPosition == null) {
 			for (int i = 0; i < arguments.length; i++) {
-				TypeDescriptor targetType = new TypeDescriptor(MethodParameter.forMethodOrConstructor(methodOrCtor, i));
-				Object argument = arguments[i];
-				arguments[i] = converter.convertValue(argument, TypeDescriptor.forObject(argument), targetType);
+				if (argumentsToConvert != null && argumentsToConvert.contains(i)) {
+					TypeDescriptor targetType = new TypeDescriptor(MethodParameter.forMethodOrConstructor(methodOrCtor, i));
+					Object argument = arguments[i];
+					arguments[i] = converter.convertValue(argument, TypeDescriptor.forObject(argument), targetType);
+				}
 			}
 		} else {
 			for (int i = 0; i < varargsPosition; i++) {
-				TypeDescriptor targetType = new TypeDescriptor(MethodParameter.forMethodOrConstructor(methodOrCtor, i));
-				Object argument = arguments[i];
-				arguments[i] = converter.convertValue(argument, TypeDescriptor.forObject(argument), targetType);				
+				if (argumentsToConvert != null && argumentsToConvert.contains(i)) {
+					TypeDescriptor targetType = new TypeDescriptor(MethodParameter.forMethodOrConstructor(methodOrCtor, i));
+					Object argument = arguments[i];
+					arguments[i] = converter.convertValue(argument, TypeDescriptor.forObject(argument), targetType);
+				}
 			}
 			MethodParameter methodParam = MethodParameter.forMethodOrConstructor(methodOrCtor, varargsPosition);
 			if (varargsPosition == arguments.length - 1) {
