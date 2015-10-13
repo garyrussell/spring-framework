@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.aop.interceptor.SimpleTraceInterceptor;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
@@ -237,14 +236,14 @@ public class HandlerMethodAnnotationDetectionTests {
 	static interface MappingInterface {
 
 		@InitBinder
-		void initBinder(WebDataBinder dataBinder, @RequestParam("datePattern") String thePattern);
+		void initBinder(WebDataBinder dataBinder, String thePattern);
 
 		@ModelAttribute
-		void initModel(@RequestHeader("header1") Date date, Model model);
+		void initModel(Date date, Model model);
 
 		@RequestMapping(value="/path1/path2", method=RequestMethod.POST)
 		@ModelAttribute("attr2")
-		Date handle(@RequestHeader("header2") Date date, Model model) throws Exception;
+		Date handle(Date date, Model model) throws Exception;
 
 		@ExceptionHandler(Exception.class)
 		@ResponseBody
